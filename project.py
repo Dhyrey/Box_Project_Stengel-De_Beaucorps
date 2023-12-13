@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from sys import argv, exit
+from itertools import product
 
 
 @dataclass
@@ -112,16 +113,26 @@ def tests() -> None:
     print("Passed")
 
 
+def naive(kmax: int, sequences: list[str]):
+    for k in range(3, kmax + 1):
+        all_combinations = product("ATGC", repeat=k)
+        all_combinations_strings = map(lambda x: "".join(x), all_combinations)
+        all_maws = list(
+            filter(lambda x: is_MAW(x, sequences), all_combinations_strings)
+        )
+        print(k, all_maws)
+
+
 def main():
     if len(argv) < 3:
         print(f"Usage : {argv[0]} <file> <kmax>")
         exit(1)
 
-    kmax = argv[2]
-
     sequences = parse_file(argv[1])
-    for seq in sequences:
-        print(f"{len(seq.sequence)} \t {seq.description}")
+    raw_sequences = list(map(lambda x: x.sequence, sequences))
+    kmax = int(argv[2])
+
+    naive(kmax, raw_sequences)
 
     tests()
 
