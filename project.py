@@ -8,7 +8,7 @@ class sequence:
     sequence: str
 
 
-def reverse_complement(s):
+def reverse_complement(s: str) -> str:
     dict = {"A": "T", "T": "A", "C": "G", "G": "C"}
     s1 = ""
 
@@ -18,11 +18,11 @@ def reverse_complement(s):
     return s1
 
 
-def cannonical_sequence(s):
+def cannonical_sequence(s: str) -> str:
     return min(s, reverse_complement(s))
 
 
-def is_absent_in(x, s):
+def is_absent_in(x: str, s: str) -> bool:
     x1 = reverse_complement(x)
 
     for i in range(len(s) - len(x)):
@@ -36,7 +36,7 @@ def is_absent_in(x, s):
     return True
 
 
-def substrings(x):
+def substrings(x: str) -> list[str]:
     l = []
     for i in range(len(x) - 1):
         for j in range(i + 1, len(x) + 1):
@@ -46,7 +46,7 @@ def substrings(x):
     return l
 
 
-def is_MAW(x, S):
+def is_MAW(x: str, S: list[str]) -> bool:
     for s in S:
         if not (is_absent_in(x, s)):
             return False
@@ -67,7 +67,7 @@ def parse_file(filename: str) -> list[sequence]:
     lines = read_file_lines(filename)
     assert len(lines) % 2 == 0, "Wrong format ?"
 
-    sequences: list[sequence] = []
+    sequences = []
 
     for i in range(0, len(lines), 2):
         assert lines[i][0] == ">", "Wrong format ?"
@@ -96,16 +96,21 @@ def tests() -> None:
     assert is_absent_in(x2, s2) == False, "RIP bozo"
     assert is_absent_in(x3, s2) == False, "RIP bozo"
 
+    print("Passed")
+
     print("\nTest substrings")
     x4 = "ATTG"
-    
-    assert substrings(x4) == ['A', 'AT', 'ATT', 'T', 'TT', 'TTG', 'T', 'TG'], "RIP bozo"
+
+    assert substrings(x4) == ["A", "AT", "ATT", "T", "TT", "TTG", "T", "TG"], "RIP bozo"
+    print("Passed")
 
     print("\nTest is_MAW")
     s3 = "AATATTTTTTTGTTG"
 
     assert is_MAW(x4, [s3]) == True, "RIP bozo"
     assert is_MAW(x4, [s1, s2]) == False, "RIP bozo"
+    print("Passed")
+
 
 def main():
     if len(argv) < 3:
@@ -118,7 +123,7 @@ def main():
     for seq in sequences:
         print(f"{len(seq.sequence)} \t {seq.description}")
 
-    # tests()
+    tests()
 
 
 if __name__ == "__main__":
