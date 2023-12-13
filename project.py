@@ -85,35 +85,27 @@ def tests() -> None:
     x2 = "TGC"
     x3 = "TTG"
 
-    print(x1 + ", " + s1 + " : " + str(is_absent_in(x1, s1)))
-    print(x2 + ", " + s1 + " : " + str(is_absent_in(x2, s1)))
-    print(x3 + ", " + s1 + " : " + str(is_absent_in(x3, s1)))
-    print(x1 + ", " + s2 + " : " + str(is_absent_in(x1, s2)))
-    print(x2 + ", " + s2 + " : " + str(is_absent_in(x2, s2)))
-    print(x3 + ", " + s2 + " : " + str(is_absent_in(x3, s2)))
-
     print("Test is_absent")
     s1 = "ATGTCGGACCGGTT"
     s2 = "ATTGCCCATTACCG"
 
-    print(x1 + ", " + s1 + " : " + str(is_absent_in(x1, s1)))
-    print(x2 + ", " + s1 + " : " + str(is_absent_in(x2, s1)))
-    print(x3 + ", " + s1 + " : " + str(is_absent_in(x3, s1)))
-    print(x1 + ", " + s2 + " : " + str(is_absent_in(x1, s2)))
-    print(x2 + ", " + s2 + " : " + str(is_absent_in(x2, s2)))
-    print(x3 + ", " + s2 + " : " + str(is_absent_in(x3, s2)))
+    assert is_absent_in(x1, s1) == False, "RIP bozo"
+    assert is_absent_in(x2, s1) == True, "RIP bozo"
+    assert is_absent_in(x3, s1) == True, "RIP bozo"
+    assert is_absent_in(x1, s2) == False, "RIP bozo"
+    assert is_absent_in(x2, s2) == False, "RIP bozo"
+    assert is_absent_in(x3, s2) == False, "RIP bozo"
 
     print("\nTest substrings")
     x4 = "ATTG"
-
-    print(x4 + " : " + str(substrings(x4)))
+    
+    assert substrings(x4) == ['A', 'AT', 'ATT', 'T', 'TT', 'TTG', 'T', 'TG'], "RIP bozo"
 
     print("\nTest is_MAW")
     s3 = "AATATTTTTTTGTTG"
 
-    print(x4 + ", [" + s3 + "] : " + str(is_MAW(x4, [s3])))
-    print(x4 + ", [" + s1 + ", " + s2 + "] : " + str(is_MAW(x4, [s1, s2])))
-
+    assert is_MAW(x4, [s3]) == True, "RIP bozo"
+    assert is_MAW(x4, [s1, s2]) == False, "RIP bozo"
 
 def main():
     if len(argv) < 3:
