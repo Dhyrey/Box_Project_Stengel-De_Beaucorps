@@ -1,1 +1,2 @@
-all_ebi_plasmids.fa
+*.fa
+*.csv

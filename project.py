@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from sys import argv, exit
 from itertools import product
-
+from readfa import *
+from csv import *
 
 @dataclass
 class sequence:
@@ -112,15 +113,28 @@ def tests() -> None:
     assert is_MAW(x4, [s1, s2]) == False, "RIP bozo"
     print("Passed")
 
+def write_tsv(data: list[int,list[str]],filename: str):
+    file = open(filename,"w")
+    for d_line in data :
+        s_line = str(d_line[0])+"\t"+",".join(d_line[1])+"\n"
+        file.write(s_line)
+    file.close()
+
 
 def naive(kmax: int, sequences: list[str]):
+    data = []
     for k in range(3, kmax + 1):
         all_combinations = product("ATGC", repeat=k)
         all_combinations_strings = map(lambda x: "".join(x), all_combinations)
         all_maws = list(
             filter(lambda x: is_MAW(x, sequences), all_combinations_strings)
         )
-        print(k, all_maws)
+        n = len(all_maws) 
+        if n != 0 :
+            print(str(k) + " : " + str(n) + " MAWs")
+            data.append([k,all_maws])
+    
+    return data
 
 
 def main():
@@ -128,11 +142,16 @@ def main():
         print(f"Usage : {argv[0]} <file> <kmax>")
         exit(1)
 
-    sequences = parse_file(argv[1])
-    raw_sequences = list(map(lambda x: x.sequence, sequences))
+    # sequences = parse_file(argv[1])
+    # raw_sequences = list(map(lambda x: x.sequence, sequences))
+    raw_sequences = readfq_file(argv[1])
+
+
     kmax = int(argv[2])
 
-    naive(kmax, raw_sequences)
+    data = naive(kmax, raw_sequences)
+
+    write_tsv(data,(argv[1][:len(argv[1])-3])+".csv")
 
     tests()
 
