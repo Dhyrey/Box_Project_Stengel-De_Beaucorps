@@ -4,6 +4,7 @@ from itertools import product
 from readfa import *
 from csv import *
 
+
 @dataclass
 class sequence:
     description: str
@@ -24,15 +25,19 @@ def cannonical_sequence(s: str) -> str:
     return min(s, reverse_complement(s))
 
 
-def is_absent_in(x: str, s: str) -> bool:
+def is_absent_in(x: str, s: str, do_print=False) -> bool:
     x1 = reverse_complement(x)
 
-    for i in range(len(s) - len(x)):
-        if x == s[i : i + len(x)]:
-            # print(x + " : " + s)
+    for i in range(len(s) - len(x) + 1):
+        substr = s[i : i + len(x)]
+
+        if x == substr:
+            if do_print:
+                print(f"found {x}/{x1} at index {i}")
             return False
-        if x1 == s[i : i + len(x)]:
-            # print(x1 + " : " + s)
+        if x1 == substr:
+            if do_print:
+                print(f"found {x}/{x1} at index {i}")
             return False
 
     return True
@@ -40,7 +45,7 @@ def is_absent_in(x: str, s: str) -> bool:
 
 def substrings(x: str) -> list[str]:
     l = []
-    for i in range(len(x) - 1):
+    for i in range(len(x)):
         for j in range(i + 1, len(x) + 1):
             if j - i == len(x):
                 continue
@@ -50,7 +55,7 @@ def substrings(x: str) -> list[str]:
 
 def is_MAW(x: str, S: list[str]) -> bool:
     for s in S:
-        if not (is_absent_in(x, s)):
+        if not (is_absent_in(x, s, False)):
             return False
     sxs = substrings(x)
     for sx in sxs:
@@ -103,7 +108,17 @@ def tests() -> None:
     print("\nTest substrings")
     x4 = "ATTG"
 
-    assert substrings(x4) == ["A", "AT", "ATT", "T", "TT", "TTG", "T", "TG"], "RIP bozo"
+    assert substrings(x4) == [
+        "A",
+        "AT",
+        "ATT",
+        "T",
+        "TT",
+        "TTG",
+        "T",
+        "TG",
+        "G",
+    ], "RIP bozo"
     print("Passed")
 
     print("\nTest is_MAW")
@@ -113,27 +128,31 @@ def tests() -> None:
     assert is_MAW(x4, [s1, s2]) == False, "RIP bozo"
     print("Passed")
 
-def write_tsv(data: list[int,list[str]],filename: str):
-    file = open(filename,"w")
-    for d_line in data :
-        s_line = str(d_line[0])+"\t"+",".join(d_line[1])+"\n"
+
+def write_tsv(data: list[tuple[int, list[str]]], filename: str) -> None:
+    file = open(filename, "w")
+    for d_line in data:
+        s_line = str(d_line[0]) + "\t" + ",".join(d_line[1]) + "\n"
         file.write(s_line)
     file.close()
 
 
-def naive(kmax: int, sequences: list[str]):
+def naive(kmax: int, sequences: list[str]) -> list[tuple[int, list[str]]]:
     data = []
     for k in range(3, kmax + 1):
         all_combinations = product("ATGC", repeat=k)
         all_combinations_strings = map(lambda x: "".join(x), all_combinations)
         all_maws = list(
-            filter(lambda x: is_MAW(x, sequences), all_combinations_strings)
+            filter(
+                lambda x: x == cannonical_sequence(x) and is_MAW(x, sequences),
+                all_combinations_strings,
+            )
         )
-        n = len(all_maws) 
-        if n != 0 :
+        n = len(all_maws)
+        if n != 0:
             print(str(k) + " : " + str(n) + " MAWs")
-            data.append([k,all_maws])
-    
+            data.append((k, all_maws))
+
     return data
 
 
@@ -144,16 +163,19 @@ def main():
 
     # sequences = parse_file(argv[1])
     # raw_sequences = list(map(lambda x: x.sequence, sequences))
-    raw_sequences = readfq_file(argv[1])
+    tests()
 
+    raw_sequences = readfq_file(argv[1])
 
     kmax = int(argv[2])
 
     data = naive(kmax, raw_sequences)
+    # laura = ["AAACG", "AACCG", "AACGT", "ACCGA", "ACCGT"]
+    # elie =  ["ACGCG","ACGTA","CCGCG","CGCGA"]
+    # for maw in laura:
+    #     print(is_absent_in(maw, raw_sequences[0], True))
 
-    write_tsv(data,(argv[1][:len(argv[1])-3])+".csv")
-
-    tests()
+    write_tsv(data, (argv[1][: len(argv[1]) - 3]) + ".csv")
 
 
 if __name__ == "__main__":
