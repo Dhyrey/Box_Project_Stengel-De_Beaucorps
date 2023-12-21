@@ -1,6 +1,8 @@
+from bitarray import *
+
 class q_bit_array:
     def __init__(self, q):
-        self.array = [False for i in range(4**q)]
+        self.array = bitarray(4**q)
         self.len = 0
         self.full = False
         self.q = q
@@ -8,8 +10,8 @@ class q_bit_array:
 
     def add_word(self, indexes):
         if not self.array[indexes[0]]:
-            self.array[indexes[0]] = True
-            self.array[indexes[1]] = True
+            self.array[indexes[0]] = 1
+            self.array[indexes[1]] = 1
             self.len += 2
             self.full = self.len >= self.max_len
 
