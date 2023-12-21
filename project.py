@@ -124,7 +124,7 @@ def naive(kmax: int, sequences: tuple[str]) -> list[tuple[int, list[str]]]:
     return data
 
 
-def bfs(kmax: int, seqs: tuple[str]) -> set[str]:
+def bfs(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[str]]]:
     current = list("ACGT")
     maws: set[str] = set()
     seen: set[str] = set()
@@ -151,10 +151,15 @@ def bfs(kmax: int, seqs: tuple[str]) -> set[str]:
         current = toexplore.copy()
         toexplore = []
 
-    return maws
+    lengths = list(set(map(len, maws)))
+    lengths.sort()
+    to_return = []
+    for i in lengths:
+        to_return.append((i, list(filter(lambda maw: len(maw) == i, maws))))
+    return to_return
 
 
-def unword(kmax: int, seqs: tuple[str]) -> list[str]:
+def unword(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[str]]]:
     t = datetime.now()
     k = 2
     l = []
@@ -271,8 +276,7 @@ def main():
         write_tsv(data, (argv[1][: len(argv[1]) - 3]) + ".csv")
     elif argv[3] == "bfs":
         data = bfs(kmax, filtered_sequences)
-        for maw in data:
-            print(len(maw), maw)
+        print(data)
     elif argv[3] == "unword":
         data = unword(kmax, filtered_sequences)
         write_tsv(data, (argv[1][: len(argv[1]) - 3]) + ".csv")
