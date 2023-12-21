@@ -192,7 +192,7 @@ def unword(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[str]]]:
         absent_words = omega_list[k - kmin].absent_words()
         l = []
         for word in absent_words:
-            if word==cannonical_sequence(word) and is_MAW_omega(word, omega_list, kmin):
+            if is_MAW_omega(word, omega_list, kmin):
                 l.append(word)
         maws.append((k, l))
         print(str(len(l)) + " MAWs found in " + str(datetime.now() - t))

@@ -37,7 +37,9 @@ class q_bit_array:
         l = []
         for i in range(self.max_len):
             if not (self.array[i]):
-                l.append(index_to_word(i, self.q))
+                word = index_to_word(i, self.q)
+                if word == cannonical_sequence(word):
+                    l.append(word)
         return l
 
 
@@ -48,14 +50,14 @@ def reverse_complement(s: str) -> str:
         s1 += dict[c]
     return s1
 
+def cannonical_sequence(s: str) -> str:
+    return min(s, reverse_complement(s))
 
-def substrings(x: str) -> list[str]:
+def substrings(x: str, kmin : int = 1) -> list[str]:
     l = []
-    for i in range(len(x)):
-        for j in range(i + 1, len(x) + 1):
-            if j - i == len(x):
-                continue
-            l.append(x[i:j])
+    for i in range(len(x)-1,kmin-1,-1):
+        for j in range(0, len(x) - i + 1):
+            l.append(x[j:j+i])
     return l
 
 
@@ -89,9 +91,9 @@ def index_to_word(index: int, q: int) -> str:
 
 
 def is_MAW_omega(word: str, omega_list: list[q_bit_array], kmin: int) -> bool:
-    subs = substrings(word)
+    subs = substrings(word,kmin)
     for w in subs:
-        if len(w) >= kmin and (not omega_list[len(w) - kmin].array[word_to_index(w)]):
+        if not omega_list[len(w) - kmin].array[word_to_index(w)]:
             return False
     return True
 
@@ -121,5 +123,6 @@ def test_unword():
     print("reconstruction of " + x2 + " : " + index_to_word(word_to_index(x2), 3))
     print("reconstruction of " + x3 + " : " + index_to_word(word_to_index(x3), 4))
 
-
-test_unword()
+    print(substrings(x3))
+    x4 = "ATGACTCT"
+    print(substrings(x4,6))
