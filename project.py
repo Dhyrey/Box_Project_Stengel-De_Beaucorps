@@ -103,6 +103,7 @@ def write_tsv(data: list[tuple[int, list[str]]], filename: str) -> None:
         s_line = str(d_line[0]) + "\t" + ",".join(d_line[1]) + "\n"
         file.write(s_line)
     file.close()
+    print("file saved.")
 
 
 def naive(kmax: int, sequences: tuple[str]) -> list[tuple[int, list[str]]]:
@@ -191,7 +192,7 @@ def unword(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[str]]]:
         absent_words = omega_list[k - kmin].absent_words()
         l = []
         for word in absent_words:
-            if is_MAW_omega(word, omega_list, kmin):
+            if word==cannonical_sequence(word) and is_MAW_omega(word, omega_list, kmin):
                 l.append(word)
         maws.append((k, l))
         print(str(len(l)) + " MAWs found in " + str(datetime.now() - t))
@@ -248,7 +249,6 @@ def tests() -> None:
     assert is_MAW(x4, (s1, s2)) == False, "RIP bozo"
     print("Passed")
 
-
 def main():
     if len(argv) < 3:
         print(f"Usage : {argv[0]} <file> <kmax> <naive | bfs>")
@@ -269,17 +269,18 @@ def main():
     print("Filtered in " + str(datetime.now() - t))
 
     kmax = int(argv[2])
+    filename = (argv[1][: len(argv[1]) - 3]) + "_" + argv[3] + ".csv"
 
     print("Calculating MAWs using the " + argv[3] + " algorithm")
     if argv[3] == "naive":
         data = naive(kmax, filtered_sequences)
-        write_tsv(data, (argv[1][: len(argv[1]) - 3]) + ".csv")
+        write_tsv(data, filename)
     elif argv[3] == "bfs":
         data = bfs(kmax, filtered_sequences)
-        print(data)
+        write_tsv(data, filename)
     elif argv[3] == "unword":
         data = unword(kmax, filtered_sequences)
-        write_tsv(data, (argv[1][: len(argv[1]) - 3]) + ".csv")
+        write_tsv(data, filename)
 
     # laura = ["AAACG", "AACCG", "AACGT", "ACCGA", "ACCGT"]
     # elie =  ["ACGCG","ACGTA","CCGCG","CGCGA"]
