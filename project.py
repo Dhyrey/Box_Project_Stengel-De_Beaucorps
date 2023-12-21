@@ -125,6 +125,7 @@ def bfs(kmax: int, seqs: tuple[str]) -> set[str]:
     k = 1
     toexplore = []
     while k <= kmax and current:
+        print(str(k) + " : " + str(len(current)) + "/" + str(4**k))
         for mot in current:
             reversed = reverse_complement(mot)
             if reversed in seen:
@@ -208,7 +209,7 @@ def main():
 
     raw_sequences = tuple(readfq_file(argv[1]))
     tree(raw_sequences[0])
-    return
+    #return
 
     kmax = int(argv[2])
 

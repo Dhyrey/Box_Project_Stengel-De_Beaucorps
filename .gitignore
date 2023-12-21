@@ -1,2 +1,3 @@
 *.fa
 *.csv
+/__pycache__
