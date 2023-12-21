@@ -4,7 +4,8 @@ from itertools import product
 from readfa import *
 from csv import *
 from functools import cache
-from suffix_tree import tree, SuffixTree
+from unword import *
+from datetime import *
 
 
 @dataclass
@@ -90,6 +91,9 @@ def parse_file(filename: str) -> list[sequence]:
 
     return sequences
 
+def filter_sequences(seqs: list[str]) -> tuple[str]:  
+  alphabet = set("ATGC")
+  return tuple(map(lambda seq: "".join(filter(lambda x: x in alphabet, seq)), seqs))
 
 def write_tsv(data: list[tuple[int, list[str]]], filename: str) -> None:
     file = open(filename, "w")
@@ -147,6 +151,44 @@ def bfs(kmax: int, seqs: tuple[str]) -> set[str]:
 
     return maws
 
+def unword(kmax : int, seqs: tuple[str]) -> list[str]:
+    t = datetime.now()
+    k = 2
+    l=[]
+
+    while True:
+        t = datetime.now()
+        print("k : " + str(k))
+        omega = q_bit_array(k)
+        omega.scan(seqs)
+
+        if omega.full and k<kmax :
+            print("Processed in " + str(datetime.now()-t))
+            k+=1
+        else :
+            l = omega.absent_words()
+            print(str(len(l)) + " MAWs found in " +str(datetime.now()-t))
+            break
+
+    maws = [(k,l)]
+    kmin = k
+    omega_list=[omega]
+
+    while k<kmax:
+        t = datetime.now()
+        k+=1
+        print("k : " + str(k))
+        omega_list.append(q_bit_array(k))
+        omega_list[k-kmin-1].scan(seqs)
+        absent_words = omega_list[k-kmin-1].absent_words()
+        l=[]
+        for word in absent_words:
+            if is_MAW_omega(word,omega_list,kmin):
+                l.append(word)
+        maws.append((k,l))
+        print(str(len(l)) + " MAWs found in " +str(datetime.now()-t))
+
+    return maws
 
 def tests() -> None:
     s1 = "ATGTCGGACCGGTT"
@@ -204,27 +246,40 @@ def main():
         exit(1)
 
     # sequences = parse_file(argv[1])
-    # raw_sequences = list(map(lambda x: x.sequence, sequences))
+    # parsed_sequences = list(map(lambda x: x.sequence, sequences))
     # tests()
 
-    raw_sequences = tuple(readfq_file(argv[1]))
-    tree(raw_sequences[0])
+    print("Parsing file.")
+    t = datetime.now()
+    parsed_sequences = readfq_file(argv[1])
+    print("Parsed in " + str(datetime.now()-t))
+
+    print("Filtering unwanted characters.")
+    t = datetime.now()
+    filtered_sequences = filter_sequences(parsed_sequences)
+    print("Filtered in " + str(datetime.now()-t))
+
+    #tree(filtered_sequences[0])
     #return
 
     kmax = int(argv[2])
 
+    print("Calculating MAWs using the " + argv[3] + " algorithm")
     if argv[3] == "naive":
-        data = naive(kmax, raw_sequences)
+        data = naive(kmax, filtered_sequences)
         write_tsv(data, (argv[1][: len(argv[1]) - 3]) + ".csv")
     elif argv[3] == "bfs":
-        data = bfs(kmax, raw_sequences)
+        data = bfs(kmax, filtered_sequences)
         for maw in data:
             print(len(maw), maw)
+    elif argv[3] == "unword":
+        data = unword(kmax,filtered_sequences)
+        print(data)
 
     # laura = ["AAACG", "AACCG", "AACGT", "ACCGA", "ACCGT"]
     # elie =  ["ACGCG","ACGTA","CCGCG","CGCGA"]
     # for maw in laura:
-    #     print(is_absent_in(maw, raw_sequences[0], True))
+    #     print(is_absent_in(maw, filtered_sequences[0], True))
 
 
 if __name__ == "__main__":
