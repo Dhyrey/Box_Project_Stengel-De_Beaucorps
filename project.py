@@ -179,8 +179,8 @@ def unword(kmax : int, seqs: tuple[str]) -> list[str]:
         k+=1
         print("k : " + str(k))
         omega_list.append(q_bit_array(k))
-        omega_list[k-kmin-1].scan(seqs)
-        absent_words = omega_list[k-kmin-1].absent_words()
+        omega_list[k-kmin].scan(seqs)
+        absent_words = omega_list[k-kmin].absent_words()
         l=[]
         for word in absent_words:
             if is_MAW_omega(word,omega_list,kmin):
@@ -274,7 +274,7 @@ def main():
             print(len(maw), maw)
     elif argv[3] == "unword":
         data = unword(kmax,filtered_sequences)
-        print(data)
+        write_tsv(data, (argv[1][: len(argv[1]) - 3]) + ".csv")
 
     # laura = ["AAACG", "AACCG", "AACGT", "ACCGA", "ACCGT"]
     # elie =  ["ACGCG","ACGTA","CCGCG","CGCGA"]
