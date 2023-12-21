@@ -3,6 +3,8 @@ from sys import argv, exit
 from itertools import product
 from readfa import *
 from csv import *
+from functools import cache
+from suffix_tree import tree, SuffixTree
 
 
 @dataclass
@@ -11,20 +13,23 @@ class sequence:
     sequence: str
 
 
+@cache
 def reverse_complement(s: str) -> str:
     dict = {"A": "T", "T": "A", "C": "G", "G": "C"}
     s1 = ""
 
-    for c in s:
+    for c in s[::-1]:
         s1 += dict[c]
 
     return s1
 
 
+@cache
 def cannonical_sequence(s: str) -> str:
     return min(s, reverse_complement(s))
 
 
+@cache
 def is_absent_in(x: str, s: str, do_print=False) -> bool:
     x1 = reverse_complement(x)
 
@@ -40,6 +45,8 @@ def is_absent_in(x: str, s: str, do_print=False) -> bool:
                 print(f"found {x}/{x1} at index {i}")
             return False
 
+    if do_print:
+        print(f"not found : {x}/{x1} not in s")
     return True
 
 
@@ -53,7 +60,7 @@ def substrings(x: str) -> list[str]:
     return l
 
 
-def is_MAW(x: str, S: list[str]) -> bool:
+def is_MAW(x: str, S: tuple[str]) -> bool:
     for s in S:
         if not (is_absent_in(x, s, False)):
             return False
@@ -84,13 +91,72 @@ def parse_file(filename: str) -> list[sequence]:
     return sequences
 
 
+def write_tsv(data: list[tuple[int, list[str]]], filename: str) -> None:
+    file = open(filename, "w")
+    for d_line in data:
+        s_line = str(d_line[0]) + "\t" + ",".join(d_line[1]) + "\n"
+        file.write(s_line)
+    file.close()
+
+
+def naive(kmax: int, sequences: tuple[str]) -> list[tuple[int, list[str]]]:
+    data = []
+    for k in range(3, kmax + 1):
+        all_combinations = product("ATGC", repeat=k)
+        all_combinations_strings = map(lambda x: "".join(x), all_combinations)
+        all_maws = list(
+            filter(
+                lambda x: x == cannonical_sequence(x) and is_MAW(x, sequences),
+                all_combinations_strings,
+            )
+        )
+        n = len(all_maws)
+        if n != 0:
+            print(str(k) + " : " + str(n) + " MAWs")
+            data.append((k, all_maws))
+
+    return data
+
+
+def bfs(kmax: int, seqs: tuple[str]) -> set[str]:
+    current = list("ACGT")
+    maws: set[str] = set()
+    seen: set[str] = set()
+    k = 1
+    toexplore = []
+    while k <= kmax and current:
+        for mot in current:
+            reversed = reverse_complement(mot)
+            if reversed in seen:
+                continue
+
+            if any(map(lambda x: mot.endswith(x) or reversed.startswith(x), maws)):
+                continue
+
+            if any(map(lambda seq: not is_absent_in(mot, seq), seqs)):
+                for c in "ATGC":
+                    toexplore.append(mot + c)
+                continue
+
+            maws.add(mot)
+
+        k += 1
+        current = toexplore.copy()
+        toexplore = []
+
+    return maws
+
+
 def tests() -> None:
     s1 = "ATGTCGGACCGGTT"
     s2 = "ATTGCCCATTACCG"
+    s3 = "AAAAAAAAAAA"
 
     x1 = "ATG"
     x2 = "TGC"
     x3 = "TTG"
+    x4 = "A"
+    x5 = "G"
 
     print("Test is_absent")
     s1 = "ATGTCGGACCGGTT"
@@ -102,6 +168,8 @@ def tests() -> None:
     assert is_absent_in(x1, s2) == False, "RIP bozo"
     assert is_absent_in(x2, s2) == False, "RIP bozo"
     assert is_absent_in(x3, s2) == False, "RIP bozo"
+    assert is_absent_in(x4, s1) == False, "RIP bozo"
+    assert is_absent_in(x5, s3) == True, "RIP bozo"
 
     print("Passed")
 
@@ -124,58 +192,38 @@ def tests() -> None:
     print("\nTest is_MAW")
     s3 = "AATATTTTTTTGTTG"
 
-    assert is_MAW(x4, [s3]) == True, "RIP bozo"
-    assert is_MAW(x4, [s1, s2]) == False, "RIP bozo"
+    assert is_MAW(x4, (s3,)) == True, "RIP bozo"
+    assert is_MAW(x4, (s1, s2)) == False, "RIP bozo"
     print("Passed")
-
-
-def write_tsv(data: list[tuple[int, list[str]]], filename: str) -> None:
-    file = open(filename, "w")
-    for d_line in data:
-        s_line = str(d_line[0]) + "\t" + ",".join(d_line[1]) + "\n"
-        file.write(s_line)
-    file.close()
-
-
-def naive(kmax: int, sequences: list[str]) -> list[tuple[int, list[str]]]:
-    data = []
-    for k in range(3, kmax + 1):
-        all_combinations = product("ATGC", repeat=k)
-        all_combinations_strings = map(lambda x: "".join(x), all_combinations)
-        all_maws = list(
-            filter(
-                lambda x: x == cannonical_sequence(x) and is_MAW(x, sequences),
-                all_combinations_strings,
-            )
-        )
-        n = len(all_maws)
-        if n != 0:
-            print(str(k) + " : " + str(n) + " MAWs")
-            data.append((k, all_maws))
-
-    return data
 
 
 def main():
     if len(argv) < 3:
-        print(f"Usage : {argv[0]} <file> <kmax>")
+        print(f"Usage : {argv[0]} <file> <kmax> <naive | bfs>")
         exit(1)
 
     # sequences = parse_file(argv[1])
     # raw_sequences = list(map(lambda x: x.sequence, sequences))
-    tests()
+    # tests()
 
-    raw_sequences = readfq_file(argv[1])
+    raw_sequences = tuple(readfq_file(argv[1]))
+    tree(raw_sequences[0])
+    return
 
     kmax = int(argv[2])
 
-    data = naive(kmax, raw_sequences)
+    if argv[3] == "naive":
+        data = naive(kmax, raw_sequences)
+        write_tsv(data, (argv[1][: len(argv[1]) - 3]) + ".csv")
+    elif argv[3] == "bfs":
+        data = bfs(kmax, raw_sequences)
+        for maw in data:
+            print(len(maw), maw)
+
     # laura = ["AAACG", "AACCG", "AACGT", "ACCGA", "ACCGT"]
     # elie =  ["ACGCG","ACGTA","CCGCG","CGCGA"]
     # for maw in laura:
     #     print(is_absent_in(maw, raw_sequences[0], True))
-
-    write_tsv(data, (argv[1][: len(argv[1]) - 3]) + ".csv")
 
 
 if __name__ == "__main__":
