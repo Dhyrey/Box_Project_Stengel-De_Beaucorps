@@ -11,8 +11,10 @@ class q_bit_array:
     def add_word(self, indexes):
         if not self.array[indexes[0]]:
             self.array[indexes[0]] = 1
-            self.array[indexes[1]] = 1
-            self.len += 2
+            self.len+=1
+            if indexes[0]!=indexes[1]:
+                self.array[indexes[1]] = 1
+                self.len += 1
             self.full = self.len >= self.max_len
 
     def scan(self, sequences):
