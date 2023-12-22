@@ -51,15 +51,12 @@ def is_absent_in(x: str, s: str, do_print=False) -> bool:
     return True
 
 
-def substrings(x: str) -> list[str]:
+def substrings(x: str, kmin : int = 1) -> list[str]:
     l = []
-    for i in range(len(x)):
-        for j in range(i + 1, len(x) + 1):
-            if j - i == len(x):
-                continue
-            l.append(x[i:j])
+    for i in range(len(x) - 1,kmin - 1,-1):
+        for j in range(0, len(x) - i + 1):
+            l.append(x[j:j+i])
     return l
-
 
 def is_MAW(x: str, S: tuple[str]) -> bool:
     for s in S:
@@ -97,10 +94,17 @@ def filter_sequences(seqs: list[str]) -> tuple[str]:
     return tuple(map(lambda seq: "".join(filter(lambda x: x in alphabet, seq)), seqs))
 
 
-def write_tsv(data: list[tuple[int, list[str]]], filename: str) -> None:
+def write_tsv(data: list[tuple[int, list[str]]], filename: str, is_index_form : bool = False) -> None:
     file = open(filename, "w")
     for d_line in data:
-        s_line = str(d_line[0]) + "\t" + ",".join(d_line[1]) + "\n"
+        s_line = ""
+        if is_index_form :
+            s_line = str(d_line[0]) + "\t" + index_to_word(d_line[1][0],d_line[0])
+            for i in range(1,len(d_line[1])):
+                s_line += "," + index_to_word(d_line[1][i],d_line[0])
+            s_line += "\n"
+        else :
+            s_line = str(d_line[0]) + "\t" + ",".join(d_line[1]) + "\n"
         file.write(s_line)
     file.close()
     print("file saved.")
@@ -175,7 +179,9 @@ def unword(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[str]]]:
             print("Processed in " + str(datetime.now() - t))
             k += 1
         else:
-            l = omega.absent_words()
+            absent_words = omega.absent_words()
+            for word in absent_words:
+                l.append(word_to_index(word))
             print(str(len(l)) + " MAWs found in " + str(datetime.now() - t))
             break
 
@@ -193,7 +199,7 @@ def unword(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[str]]]:
         l = []
         for word in absent_words:
             if is_MAW_omega(word, omega_list, kmin):
-                l.append(word)
+                l.append(word_to_index(word))
         maws.append((k, l))
         print(str(len(l)) + " MAWs found in " + str(datetime.now() - t))
 
@@ -280,7 +286,7 @@ def main():
         write_tsv(data, filename)
     elif argv[3] == "unword":
         data = unword(kmax, filtered_sequences)
-        write_tsv(data, filename)
+        write_tsv(data, filename, True)
 
     # laura = ["AAACG", "AACCG", "AACGT", "ACCGA", "ACCGT"]
     # elie =  ["ACGCG","ACGTA","CCGCG","CGCGA"]
