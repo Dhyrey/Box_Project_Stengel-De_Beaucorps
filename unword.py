@@ -1,5 +1,6 @@
 from bitarray import *
 
+
 class q_bit_array:
     def __init__(self, q):
         self.array = bitarray(4**q)
@@ -11,8 +12,8 @@ class q_bit_array:
     def add_word(self, indexes):
         if not self.array[indexes[0]]:
             self.array[indexes[0]] = 1
-            self.len+=1
-            if indexes[0]!=indexes[1]:
+            self.len += 1
+            if indexes[0] != indexes[1]:
                 self.array[indexes[1]] = 1
                 self.len += 1
             self.full = self.len >= self.max_len
@@ -50,14 +51,16 @@ def reverse_complement(s: str) -> str:
         s1 += dict[c]
     return s1
 
+
 def cannonical_sequence(s: str) -> str:
     return min(s, reverse_complement(s))
 
-def substrings(x: str, kmin : int = 1) -> list[str]:
+
+def substrings(x: str, kmin: int = 1) -> list[str]:
     l = []
-    for i in range(len(x)-1,kmin-1,-1):
+    for i in range(len(x) - 1, kmin - 1, -1):
         for j in range(0, len(x) - i + 1):
-            l.append(x[j:j+i])
+            l.append(x[j : j + i])
     return l
 
 
@@ -69,7 +72,9 @@ def word_to_index(word: str) -> int:
     return n
 
 
-def next_index(sequence: str, i: int, q: int, previous: tuple[int]) -> int:
+def next_index(
+    sequence: str, i: int, q: int, previous: tuple[int, int]
+) -> tuple[int, int]:
     dict = {"A": 0, "C": 1, "G": 2, "T": 3}
     comp = {"A": "T", "T": "A", "C": "G", "G": "C"}
     n1 = (
@@ -91,7 +96,7 @@ def index_to_word(index: int, q: int) -> str:
 
 
 def is_MAW_omega(word: str, omega_list: list[q_bit_array], kmin: int) -> bool:
-    subs = substrings(word,kmin)
+    subs = substrings(word, kmin)
     for w in subs:
         if not omega_list[len(w) - kmin].array[word_to_index(w)]:
             return False
@@ -125,4 +130,4 @@ def test_unword():
 
     print(substrings(x3))
     x4 = "ATGACTCT"
-    print(substrings(x4,6))
+    print(substrings(x4, 6))

@@ -1,3 +1,5 @@
+#!/bin/env python3
+
 from dataclasses import dataclass
 from sys import argv, exit
 from itertools import product
@@ -51,14 +53,15 @@ def is_absent_in(x: str, s: str, do_print=False) -> bool:
     return True
 
 
-def substrings(x: str, kmin : int = 1) -> list[str]:
+def substrings(x: str, kmin: int = 1) -> list[str]:
     l = []
-    for i in range(len(x) - 1,kmin - 1,-1):
+    for i in range(len(x) - 1, kmin - 1, -1):
         for j in range(0, len(x) - i + 1):
-            l.append(x[j:j+i])
+            l.append(x[j : j + i])
     return l
 
-def is_MAW(x: str, S: tuple[str]) -> bool:
+
+def is_MAW(x: str, S: tuple[str, ...]) -> bool:
     for s in S:
         if not (is_absent_in(x, s, False)):
             return False
@@ -89,21 +92,23 @@ def parse_file(filename: str) -> list[sequence]:
     return sequences
 
 
-def filter_sequences(seqs: list[str]) -> tuple[str]:
+def filter_sequences(seqs: list[str]) -> tuple[str, ...]:
     alphabet = set("ATGC")
     return tuple(map(lambda seq: "".join(filter(lambda x: x in alphabet, seq)), seqs))
 
 
-def write_tsv(data: list[tuple[int, list[str]]], filename: str, is_index_form : bool = False) -> None:
+def write_tsv(
+    data: list[tuple[int, list[str | int]]], filename: str, is_index_form: bool = False
+) -> None:
     file = open(filename, "w")
     for d_line in data:
         s_line = ""
-        if is_index_form :
-            s_line = str(d_line[0]) + "\t" + index_to_word(d_line[1][0],d_line[0])
-            for i in range(1,len(d_line[1])):
-                s_line += "," + index_to_word(d_line[1][i],d_line[0])
+        if is_index_form:
+            s_line = str(d_line[0]) + "\t" + index_to_word(d_line[1][0], d_line[0])
+            for i in range(1, len(d_line[1])):
+                s_line += "," + index_to_word(d_line[1][i], d_line[0])
             s_line += "\n"
-        else :
+        else:
             s_line = str(d_line[0]) + "\t" + ",".join(d_line[1]) + "\n"
         file.write(s_line)
     file.close()
@@ -164,7 +169,7 @@ def bfs(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[str]]]:
     return to_return
 
 
-def unword(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[str]]]:
+def unword(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[int]]]:
     t = datetime.now()
     k = 2
     l = []
@@ -185,7 +190,7 @@ def unword(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[str]]]:
             print(str(len(l)) + " MAWs found in " + str(datetime.now() - t))
             break
 
-    maws = [(k, l)]
+    maws = [(k, l)] if l else []
     kmin = k
     omega_list = [omega]
 
@@ -255,9 +260,11 @@ def tests() -> None:
     assert is_MAW(x4, (s1, s2)) == False, "RIP bozo"
     print("Passed")
 
+
 def main():
-    if len(argv) < 3:
-        print(f"Usage : {argv[0]} <file> <kmax> <naive | bfs>")
+    if len(argv) < 5:
+        print(f"Usage : {argv[0]} <fasta file> <output file> <kmax> <method>")
+        print("\tWhere method is either of naive | bfs | unword")
         exit(1)
 
     # sequences = parse_file(argv[1])
@@ -274,19 +281,19 @@ def main():
     filtered_sequences = filter_sequences(parsed_sequences)
     print("Filtered in " + str(datetime.now() - t))
 
-    kmax = int(argv[2])
-    filename = (argv[1][: len(argv[1]) - 3]) + "_" + argv[3] + ".csv"
+    kmax = int(argv[3])
+    output_file = argv[2]
 
-    print("Calculating MAWs using the " + argv[3] + " algorithm")
-    if argv[3] == "naive":
+    print("Calculating MAWs using the " + argv[4] + " algorithm")
+    if argv[4] == "naive":
         data = naive(kmax, filtered_sequences)
-        write_tsv(data, filename)
-    elif argv[3] == "bfs":
+        write_tsv(data, output_file)
+    elif argv[4] == "bfs":
         data = bfs(kmax, filtered_sequences)
-        write_tsv(data, filename)
-    elif argv[3] == "unword":
+        write_tsv(data, output_file)
+    elif argv[4] == "unword":
         data = unword(kmax, filtered_sequences)
-        write_tsv(data, filename, True)
+        write_tsv(data, output_file, True)
 
     # laura = ["AAACG", "AACCG", "AACGT", "ACCGA", "ACCGT"]
     # elie =  ["ACGCG","ACGTA","CCGCG","CGCGA"]
