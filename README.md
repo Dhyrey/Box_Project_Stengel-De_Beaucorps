@@ -36,7 +36,7 @@ Parsing file.
 Parsed in 0:00:00.108295
 Filtering unwanted characters.
 Filtered in 0:00:06.840071
-Calculating MAWs using the unword algorithm
+Calculating MAWs using the unword algorithm.
 k : 2
 Processed in 0:00:00.002552
 k : 3

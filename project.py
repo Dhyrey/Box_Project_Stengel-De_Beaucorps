@@ -284,7 +284,7 @@ def main():
     kmax = int(argv[3])
     output_file = argv[2]
 
-    print("Calculating MAWs using the " + argv[4] + " algorithm")
+    print("Calculating MAWs using the " + argv[4] + " algorithm.")
     if argv[4] == "naive":
         data = naive(kmax, filtered_sequences)
         write_tsv(data, output_file)
