@@ -1,5 +1,5 @@
 from bitarray import *
-
+from datetime import *
 
 class q_bit_array:
     def __init__(self, q):
@@ -102,32 +102,42 @@ def is_MAW_omega(word: str, omega_list: list[q_bit_array], kmin: int) -> bool:
             return False
     return True
 
+def unword(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[int]]]:
+    t = datetime.now()
+    k = 2
+    l = []
 
-def test_unword():
-    x1 = "ATT"
-    x2 = "TTG"
-    x3 = "ATTG"
+    while True:
+        t = datetime.now()
+        print("k : " + str(k))
+        omega = q_bit_array(k)
+        omega.scan(seqs)
 
-    assert index_to_word(word_to_index(x1), len(x1)) == x1, "RIP Bozo"
-    assert index_to_word(word_to_index(x2), len(x2)) == x2, "RIP Bozo"
-    assert index_to_word(word_to_index(x3), len(x3)) == x3, "RIP Bozo"
+        if omega.full and k < kmax:
+            print("Processed in " + str(datetime.now() - t))
+            k += 1
+        else:
+            absent_words = omega.absent_words()
+            for word in absent_words:
+                l.append(word_to_index(word))
+            print(str(len(l)) + " MAWs found in " + str(datetime.now() - t))
+            break
+    maws = [(k, l)] if l else []
+    kmin = k
+    omega_list = [omega]
 
-    print(x1 + " : " + str((word_to_index(x1), word_to_index(reverse_complement(x1)))))
-    print(x2 + " : " + str((word_to_index(x2), word_to_index(reverse_complement(x2)))))
-    print(
-        x2
-        + " based on previous : "
-        + str(
-            next_index(
-                x3, 1, 3, (word_to_index(x1), word_to_index(reverse_complement(x1)))
-            )
-        )
-    )
+    while k < kmax:
+        t = datetime.now()
+        k += 1
+        print("k : " + str(k))
+        omega_list.append(q_bit_array(k))
+        omega_list[k - kmin].scan(seqs)
+        absent_words = omega_list[k - kmin].absent_words()
+        l = []
+        for word in absent_words:
+            if is_MAW_omega(word, omega_list, kmin):
+                l.append(word_to_index(word))
+        maws.append((k, l))
+        print(str(len(l)) + " MAWs found in " + str(datetime.now() - t))
 
-    print("reconstruction of " + x1 + " : " + index_to_word(word_to_index(x1), 3))
-    print("reconstruction of " + x2 + " : " + index_to_word(word_to_index(x2), 3))
-    print("reconstruction of " + x3 + " : " + index_to_word(word_to_index(x3), 4))
-
-    print(substrings(x3))
-    x4 = "ATGACTCT"
-    print(substrings(x4, 6))
+    return maws
