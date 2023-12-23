@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 def reverse_complement(s: str) -> str:
     dict = {"A": "T", "T": "A", "C": "G", "G": "C"}
     s1 = ""
@@ -6,6 +9,7 @@ def reverse_complement(s: str) -> str:
         s1 += dict[c]
 
     return s1
+
 
 def is_absent_in(x: str, s: str, do_print=False) -> bool:
     x1 = reverse_complement(x)
@@ -26,6 +30,7 @@ def is_absent_in(x: str, s: str, do_print=False) -> bool:
         print(f"not found : {x}/{x1} not in s")
     return True
 
+
 def bfs(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[str]]]:
     current = list("ACGT")
     maws: set[str] = set()
@@ -34,6 +39,7 @@ def bfs(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[str]]]:
     toexplore = []
     while k <= kmax and current:
         print(str(k) + " : " + str(len(current)) + "/" + str(4**k))
+        t = datetime.now()
         for mot in current:
             reversed = reverse_complement(mot)
             if reversed in seen:
@@ -49,6 +55,7 @@ def bfs(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[str]]]:
 
             maws.add(mot)
 
+        print("Processed in " + str(datetime.now() - t))
         k += 1
         current = toexplore.copy()
         toexplore = []

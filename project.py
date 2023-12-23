@@ -9,6 +9,7 @@ from naive import *
 from bfs import *
 from unword import *
 
+
 def filter_sequences(seqs: list[str]) -> tuple[str, ...]:
     alphabet = set("ATGC")
     return tuple(map(lambda seq: "".join(filter(lambda x: x in alphabet, seq)), seqs))
@@ -30,6 +31,7 @@ def write_tsv(
         file.write(s_line)
     file.close()
     print("file saved.")
+
 
 def main():
     if len(argv) < 5:
@@ -60,6 +62,7 @@ def main():
     elif argv[4] == "unword":
         data = unword(kmax, filtered_sequences)
         write_tsv(data, output_file, True)
+
 
 if __name__ == "__main__":
     main()

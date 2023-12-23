@@ -1,6 +1,7 @@
 from bitarray import *
 from datetime import *
 
+
 class q_bit_array:
     def __init__(self, q):
         self.array = bitarray(4**q)
@@ -101,6 +102,7 @@ def is_MAW_omega(word: str, omega_list: list[q_bit_array], kmin: int) -> bool:
         if not omega_list[len(w) - kmin].array[word_to_index(w)]:
             return False
     return True
+
 
 def unword(kmax: int, seqs: tuple[str]) -> list[tuple[int, list[int]]]:
     t = datetime.now()
